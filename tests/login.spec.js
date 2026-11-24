@@ -35,9 +35,12 @@ test.describe('Login page', () => {
   });
 
   test('TC04 - unregistered email shows error message', async ({ page }) => {
+    test.skip(!!process.env.CI, 'reCAPTCHA blocks login submits in headless CI');
+
     await loginPage.login('no.such.user.qa@example.com', 'WrongPass123!');
 
-    await expect(loginPage.errorMessage).toContainText("couldn’t find an account");
+    // Error appears after a full page reload, which can be slow on staging
+    await expect(loginPage.errorMessage).toContainText("couldn’t find an account", { timeout: 15000 });
     await expect(page).toHaveURL(/customer\/account\/login/);
   });
 
@@ -45,6 +48,7 @@ test.describe('Login page', () => {
     const email = process.env.SAFCO_EMAIL;
     const password = process.env.SAFCO_PASSWORD;
     test.skip(!email || !password, 'Set SAFCO_EMAIL and SAFCO_PASSWORD in .env');
+    test.skip(!!process.env.CI, 'reCAPTCHA blocks login submits in headless CI');
 
     await loginPage.login(/** @type {string} */ (email), /** @type {string} */ (password));
 
